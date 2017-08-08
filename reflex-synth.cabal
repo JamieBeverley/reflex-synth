@@ -14,13 +14,11 @@ cabal-version:       >=1.10
 extra-source-files:
 
 Library
+  hs-source-dirs:  src
   Build-Depends:   base, reflex, reflex-dom, containers, safe, ghcjs-base, ghcjs-dom, text,
                    array, ghcjs-prim, data-default, transformers, file-embed, time, monad-loops,
                    json, bytestring
   GHC-Options:     -Wall -fwarn-tabs
   Exposed-modules: Reflex.Synth.Types
                    Reflex.Synth.Synth
-
-Source-Repository  head
-  Type:            darcs
-  Location:        http://github.com/d0kt0r0/reflex-synth.git
+  default-language: Haskell2010 

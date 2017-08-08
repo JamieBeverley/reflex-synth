@@ -1,8 +1,10 @@
+{-# LANGUAGE JavaScriptFFI #-}
+
 module Reflex.Synth.Foreign where
 
 import GHCJS.Types (JSVal)
 
-foreign import javascript safe "___ac = new AudioContext()" :: IO ()
+foreign import javascript safe "___ac = new AudioContext()" newAudioContext :: IO ()
 foreign import javascript safe "$r=___ac.destination" getDestination :: IO JSVal
 foreign import javascript safe "$1.connect($2)" connect :: JSVal -> JSVal -> IO ()
 foreign import javascript safe "$r=___ac.createGain()" createGain :: IO JSVal
