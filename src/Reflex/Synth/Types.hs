@@ -1,7 +1,7 @@
-module InnerEar.WebAudio.Types where
+module Reflex.Synth.Types where
 
 import GHCJS.Types (JSVal)
-import qualified InnerAudio.WebAudio.Foreign as F
+import qualified Reflex.Synth.Foreign as F
 
 data FilterType = Peaking
 

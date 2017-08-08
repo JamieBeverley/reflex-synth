@@ -1,4 +1,4 @@
-module InnerEar.WebAudio.Foreign where
+module Reflex.Synth.Foreign where
 
 import GHCJS.Types (JSVal)
 
