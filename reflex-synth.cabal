@@ -18,8 +18,9 @@ Library
                    array, ghcjs-prim, data-default, transformers, file-embed, time, monad-loops,
                    json, bytestring
   GHC-Options:     -Wall -fwarn-tabs
-  Exposed-modules: Reflex.Synth.
-  
+  Exposed-modules: Reflex.Synth.Types
+                   Reflex.Synth.Synth
+
 Source-Repository  head
   Type:            darcs
   Location:        http://github.com/d0kt0r0/reflex-synth.git
