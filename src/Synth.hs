@@ -17,19 +17,42 @@ data Source = PinkNoise
 instance WebAudio Source where
   createNode (PinkNoise dur) = do
     x <- createPinkNoiseNode
-    y <- createAsrEnvelope 0.005 1.0 0.005
+    y <- createAsrEnvelope 0.005 dur 0.005
     connect x y
 
-data Synth = NoSynth | Synth Source Filter
+data Synth = NoSynth | Synth Source Filter Double  -- the 'Double' is a synth duration
 
 instance WebAudio Synth where
   createNode (NoSynth) = return NullAudioNode
-  createNode (Synth s f) = do
+  createNode (Synth s f dur) = do
     x <- createNode s
     y <- createNode f
+    env <- createAsrEnvelope 0.05 dur 0.05
     connect x y
+    connect y env
     dest <- getDestination
-    connect y dest
+    connect env dest
+
+
+
+performSynth:: MonadWidget t m => Event t Synth -> m ()
+performSynth e = do
+  performEvent_ $ fmap play e
+  where 
+    play (Synth s f d) = 
+    play (NoSynth) = 
+
+
+performEvent_ :: MonadWidget t m => Event t (WidgetHost m ()) -> m ()
+
+iftIO :: MonadIO m => IO a -> m a
+
+doHint :: WebDirt -> Hint -> IO ()
+
+performHint :: MonadWidget t m => WebDirt -> Event t Hint -> m ()
+performHint wd ev = performEvent_ $ fmap (liftIO . (doHint wd)) ev
+
+
 
 -- an example of how this might be used with reflex-dom:
 
