@@ -1,6 +1,7 @@
 module Reflex.Synth.Synth where
 
 import Reflex.Synth.Types 
+import qualified Reflex.Synth.Foreign as F
 import Reflex.Dom
 import Control.Monad.IO.Class (liftIO)
 
@@ -14,44 +15,58 @@ instance WebAudio Filter where
   createNode (NoFilter) = createGain 1.0
   createNode (PeakingFilter f q g) = createPeakingFilter f q g
 
-data Source = PinkNoise
+type Duration = Double
+
+data Source = PinkNoise Duration
 
 instance WebAudio Source where
-  createNode PinkNoise = createPinkNoise
---instance WebAudio Source where
-  --createNode PinkNoise = do
-    --x <- createPinkNoise
-    --y <- createAsrEnvelope 0.005 1 0.005 --@  no envelope for a 'source' envelope only for duration -specific things (synths)
-    --connect x y
+  createNode (PinkNoise dur) = do
+    x <- createPinkNoise
+    y <- createAsrEnvelope 0.005 dur 0.005 
+    connect x y
+    return x
 
 
+data Synth = NoSynth | Synth Source Filter
 
-data Synth = NoSynth | Synth Source Filter Double  -- the 'Double' is a synth duration
+instance WebAudio WebAudioGraph where
+  createNode = connectGraph'
 
---instance WebAudio Synth where
---  createNode (NoSynth) = return NullAudioNode
---  createNode (Synth s f dur) = do
---    x <- createNode s
---    y <- createNode f
---    env <- createAsrEnvelope 0.05 dur 0.05
---    connect x y
---    connect y env
---    dest <- getDestination
---    connect env dest
+instance WebAudio Synth where
+  createNode (NoSynth) = return NullAudioNode
+  createNode (Synth s f) = do
+    let dur = case s of (PinkNoise a) -> a; otherwise -> 1 -- 1s default node length
+    x <- createNode s
+    y <- createNode f
+    env <- createAsrEnvelope 0.05 dur 0.05
+    dest <- getDestination
+    connect x y
+    connect y env
+    connect env dest
+    return env
 
 
 --data WebAudioNode = WebAudioNode NodeType JSVal | NullAudioNode
 
 
 
---performSynth:: MonadWidget t m => Event t Synth -> m ()
---performSynth event = do
---  let n = fmap (\e-> do 
---                      node <- createNode e
---                      startNode node
---                      ) event          -- Event t (IO ())
---  performEvent_ $ fmap liftIO n
+performSynth:: MonadWidget t m => Event t Synth -> m ()
+performSynth event = do
+  let n = fmap (\e-> do 
+                      node <- createNode e
+                      startNode node
+                      ) event          -- Event t (IO ())
+  performEvent_ $ fmap liftIO n
 
+
+
+--main::MonadWidget t m => IO()
+--main = do 
+--  F.createAudioContext
+--  n <- createPinkNoise
+--  dest <-F.getDestination
+--  connect n dest
+--  startNode n
 
 
   --createNode :: a -> IO WebAudioNode

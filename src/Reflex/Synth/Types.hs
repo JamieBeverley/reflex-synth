@@ -11,8 +11,15 @@ data NodeType = Filter FilterType | Gain | Destination | Noise NoiseType
 
 data WebAudioNode = WebAudioNode NodeType JSVal | NullAudioNode
 
--- JSVal 
+-- JSVal is a reference to the node furthest down the 'chain' of connected nodes
+-- for instance the Web Audio code:
+--    oscillator.connect(compressor)
+--    compressor.connect(filter)
+--    filter.connect(ac.destination)
+-- 'filter' references the node furthest down the chain and
+-- the WebAudioGraph would look lik:  WebAudioGraph (oscillator) $ WebAudioGraph compressor $ WebAudioGraph filter [filterJSVal]
 --data WebAudioGraph = WebAudioGraph WebAudioNode JSVal | WebAudioGraph' WebAudioNode WebAudioGraph
+data WebAudioGraph = WebAudioGraph WebAudioNode | WebAudioGraph' WebAudioNode WebAudioGraph
 
 
 getDestination :: IO WebAudioNode
@@ -25,6 +32,27 @@ connect (WebAudioNode Destination _) _ = error "destination can't be source of c
 connect NullAudioNode _ = return ()
 connect _ NullAudioNode = return ()
 connect (WebAudioNode _ x) (WebAudioNode yt y) = F.connect x y
+
+connectGraph :: WebAudioGraph -> IO()
+connectGraph (WebAudioGraph n) = do return ()
+connectGraph (WebAudioGraph' n (WebAudioGraph n2)) = connect n n2
+connectGraph (WebAudioGraph' n (WebAudioGraph' n2 xs)) = do
+  connect n n2
+  connectGraph (WebAudioGraph' n2 xs)
+
+connectGraph' :: WebAudioGraph -> IO (WebAudioNode)
+connectGraph' (WebAudioGraph n) = do return n
+connectGraph' (WebAudioGraph' n (WebAudioGraph n2)) = do 
+  connect n n2
+  return n2
+connectGraph' (WebAudioGraph' n (WebAudioGraph' n2 xs)) = do
+  connect n n2
+  endNode <- connectGraph' (WebAudioGraph' n2 xs)
+  return endNode
+
+--connect (WebAudioNode _ x) (WebAudioNode yt y) = do 
+--  F.connect x y
+--  return (WebAudioGraph ())
 
 setGain :: Double -> WebAudioNode -> IO ()
 setGain g (WebAudioNode Gain x) = F.setGain g x
